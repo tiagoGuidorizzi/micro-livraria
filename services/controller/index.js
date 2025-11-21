@@ -1,6 +1,8 @@
 const express = require('express');
 const shipping = require('./shipping');
 const inventory = require('./inventory');
+const reviews = require('./review');
+
 const cors = require('cors');
 
 const app = express();
@@ -43,10 +45,6 @@ app.get('/shipping/:cep', (req, res, next) => {
     );
 });
 
-/**
- * Nova rota da Tarefa Prática #1
- * Pesquisa um produto pelo ID via InventoryService
- */
 app.get('/product/:id', (req, res, next) => {
     inventory.SearchProductByID({ id: parseInt(req.params.id) }, (err, product) => {
         if (err) {
@@ -57,6 +55,37 @@ app.get('/product/:id', (req, res, next) => {
         }
     });
 });
+// Rota para obter avaliações de um produto
+app.get('/reviews/:id', (req, res) => {
+    reviews.GetReviews({ id: Number(req.params.id) }, (err, data) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send({ error: 'Falha ao recuperar avaliações' });
+        } else {
+            res.json(data);
+        }
+    });
+});
+
+// Rota para adicionar nova avaliação
+app.post('/reviews', (req, res) => {
+    const review = {
+        productId: req.body.productId,
+        username: req.body.username,
+        rating: req.body.rating,
+        comment: req.body.comment,
+    };
+
+    reviews.AddReview(review, (err, response) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send({ error: 'Falha ao adicionar avaliação' });
+        } else {
+            res.json(response);
+        }
+    });
+});
+
 
 /**
  * Inicia o router
@@ -64,3 +93,4 @@ app.get('/product/:id', (req, res, next) => {
 app.listen(3000, () => {
     console.log('Controller Service running on http://127.0.0.1:3000');
 });
+
